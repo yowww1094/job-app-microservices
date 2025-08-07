@@ -3,7 +3,11 @@ package com.yow.jobservice.job.Impl;
 import com.yow.jobservice.job.Job;
 import com.yow.jobservice.job.JobRepository;
 import com.yow.jobservice.job.JobService;
+import com.yow.jobservice.job.dto.JobWithCompanyDTO;
+import com.yow.jobservice.job.externals.Company;
+import com.yow.jobservice.job.mapper.JobWithCompanyMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +24,16 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<Job> findAll() {
-        return jobRepository.findAll();
+    public List<JobWithCompanyDTO> findAll() {
+        List<Job> jobs = jobRepository.findAll();
+        List<JobWithCompanyDTO> jobWithCompanyDTOs = new ArrayList<>();
+        for (Job job : jobs){
+            RestTemplate restTemplate = new RestTemplate();
+            Company company = restTemplate.getForObject("http://localhost:9002/companies/" + job.getCompanyId(), Company.class);
+
+            jobWithCompanyDTOs.add(JobWithCompanyMapper.toDTO(job, company));
+        }
+        return jobWithCompanyDTOs;
     }
 
     @Override
