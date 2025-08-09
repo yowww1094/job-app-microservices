@@ -3,9 +3,10 @@ package com.yow.jobservice.job.Impl;
 import com.yow.jobservice.job.Job;
 import com.yow.jobservice.job.JobRepository;
 import com.yow.jobservice.job.JobService;
-import com.yow.jobservice.job.dto.JobWithCompanyDTO;
+import com.yow.jobservice.job.dto.JobDTO;
 import com.yow.jobservice.job.externals.Company;
-import com.yow.jobservice.job.mapper.JobWithCompanyMapper;
+import com.yow.jobservice.job.mapper.JobMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,6 +18,8 @@ import java.util.Optional;
 public class JobServiceImpl implements JobService {
     //private List<Job> jobs = new ArrayList<>()
     private final JobRepository jobRepository;
+    @Autowired
+    private RestTemplate restTemplate;
     private final Long nextId = 1L;
 
     public JobServiceImpl(JobRepository jobRepository) {
@@ -24,16 +27,15 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobWithCompanyDTO> findAll() {
+    public List<JobDTO> findAll() {
         List<Job> jobs = jobRepository.findAll();
-        List<JobWithCompanyDTO> jobWithCompanyDTOs = new ArrayList<>();
+        List<JobDTO> jobDTOS = new ArrayList<>();
         for (Job job : jobs){
-            RestTemplate restTemplate = new RestTemplate();
-            Company company = restTemplate.getForObject("http://localhost:9002/companies/" + job.getCompanyId(), Company.class);
+            Company company = restTemplate.getForObject("http://COMPANYSERVICE:9002/companies/" + job.getCompanyId(), Company.class);
 
-            jobWithCompanyDTOs.add(JobWithCompanyMapper.toDTO(job, company));
+            jobDTOS.add(JobMapper.toDTO(job, company));
         }
-        return jobWithCompanyDTOs;
+        return jobDTOS;
     }
 
     @Override
@@ -48,8 +50,13 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job getJobById(Long id){
-        return jobRepository.findById(id).orElse(null);
+    public JobDTO getJobById(Long id){
+        Job job = jobRepository.findById(id).orElse(null);
+        if (job != null){
+            Company company = restTemplate.getForObject("http://COMPANYSERVICE:9002/companies/" + job.getCompanyId(), Company.class);
+            return JobMapper.toDTO(job, company);
+        }
+        return null;
     }
 
     @Override
