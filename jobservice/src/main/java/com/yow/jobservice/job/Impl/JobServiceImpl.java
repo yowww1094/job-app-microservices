@@ -3,6 +3,7 @@ package com.yow.jobservice.job.Impl;
 import com.yow.jobservice.job.Job;
 import com.yow.jobservice.job.JobRepository;
 import com.yow.jobservice.job.JobService;
+import com.yow.jobservice.job.clients.CompanyClient;
 import com.yow.jobservice.job.dto.JobDTO;
 import com.yow.jobservice.job.externals.Company;
 import com.yow.jobservice.job.mapper.JobMapper;
@@ -18,12 +19,14 @@ import java.util.Optional;
 public class JobServiceImpl implements JobService {
     //private List<Job> jobs = new ArrayList<>()
     private final JobRepository jobRepository;
+    private final CompanyClient companyClient;
     @Autowired
     private RestTemplate restTemplate;
     private final Long nextId = 1L;
 
-    public JobServiceImpl(JobRepository jobRepository) {
+    public JobServiceImpl(JobRepository jobRepository, CompanyClient companyClient) {
         this.jobRepository = jobRepository;
+        this.companyClient = companyClient;
     }
 
     @Override
@@ -31,8 +34,8 @@ public class JobServiceImpl implements JobService {
         List<Job> jobs = jobRepository.findAll();
         List<JobDTO> jobDTOS = new ArrayList<>();
         for (Job job : jobs){
-            Company company = restTemplate.getForObject("http://COMPANYSERVICE:9002/companies/" + job.getCompanyId(), Company.class);
-
+            //Company company = restTemplate.getForObject("http://COMPANYSERVICE:9002/companies/" + job.getCompanyId(), Company.class);
+            Company company = companyClient.getCompany(job.getCompanyId());
             jobDTOS.add(JobMapper.toDTO(job, company));
         }
         return jobDTOS;

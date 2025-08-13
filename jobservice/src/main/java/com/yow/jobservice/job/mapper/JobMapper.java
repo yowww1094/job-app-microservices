@@ -14,7 +14,7 @@ public class JobMapper {
         jobDTO.setDescription(job.getDescription());
         jobDTO.setMaxSalary(job.getMaxSalary());
         jobDTO.setMinSalary(job.getMinSalary());
-        jobDTO.setLocation(jobDTO.getLocation());
+        jobDTO.setLocation(job.getLocation());
         jobDTO.setCompany(company);
 
         return jobDTO;
